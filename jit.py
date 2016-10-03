@@ -90,37 +90,6 @@ def cli(config):
 	pass
 
 @cli.command()
-@click.option('--update', is_flag=True, help="Set the root directory.")
-@pass_config
-def root(config, update):
-	"""View/set the root directory."""
-	config_dir = click.get_app_dir('jit')
-	config_path = config_dir + '/config.txt'
-
-	if not os.path.exists(config_path):
-		os.makedirs(config_dir)
-
-	config_file = open(config_path, 'w+')
-	current_dir = os.getcwd()
-
-	if os.path.isfile(config_path):
-		root = config_file.read()
-		print "root {}".format(root)
-	else:
-		root = current_dir
-	
-	if update:
-		print "current dir {}".format(current_dir)
-		config_file.write(current_dir)
-	else:
-		if root:
-			print root
-		else:
-			print current_dir
-
-	config_file.close()
-
-@cli.command()
 @pass_config
 def	all(config):
 	"""Display all current branches."""
