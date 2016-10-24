@@ -2,35 +2,45 @@ import click
 import git
 import os
 
-class Config(object):
-
-	def __init__(self):
-		self.root = os.getcwd()
-
-pass_config = click.make_pass_decorator(Config, ensure=True)
-
 class Jit():
 
-	def __init__(self, root):
-		self.root = root
+	def __init__(self):
+		self.root = self.getRoot(os.getcwd())
+		if not self.root:
+			print "Could not find a root directory."
+			return
+
 		self.root_files = os.listdir(self.root)
+		return
+
+	def getRoot(self, dir):
+		if self.isRepo(dir):
+			return os.path.dirname(dir)
+		elif len(dir) < 1:
+			return False
+		else:
+			return self.getRoot(os.path.dirname(dir))
 
 	def getRepoRoot(self, repo_name):
-		return self.root + repo_name
+		return self.root + '/' + repo_name
 
-	def getRepoName(repo):
+	def getRepoName(self, repo):
 		return os.path.basename(repo.working_dir)
 
 	def getRepos(self):
 		repos = []
 		for dir in self.root_files:
 			dir_path = self.getRepoRoot(dir)
-			if os.path.isdir(dir_path + '/.git'):
+			if self.isRepo(dir_path):
 				repos.append(git.Repo(dir_path))
 
 		return repos
 
-	def getBranches(repo):
+	def isRepo(self, dir_path):
+		return os.path.isdir(dir_path + '/.git')
+
+
+	def getBranches(self, repo):
 		branches = []
 		for branch in repo.branches:
 			if branch.name != 'master':
@@ -84,42 +94,36 @@ class Jit():
 			print self.formatActiveBranchOutput(repo)
 
 @click.group()
-@pass_config
-def cli(config):
+def cli():
 	"""jit allows you to interact with all git repositories within a directory in bulk."""
 	pass
 
 @cli.command()
-@pass_config
-def	all(config):
+def	all():
 	"""Display all current branches."""
-	jit = Jit(config.root)
+	jit = Jit()
 	jit.displayCurrentBranches()
 
 @cli.command()
-@pass_config
-def mine(config):
+def mine():
 	"""Display all branches for all repos."""
-	jit = Jit(config.root)
-	Jit.displayUserRepos()   
+	jit = Jit()
+	jit.displayUserRepos()   
 
 @cli.command()
-@pass_config
-def dirty(config):
+def dirty():
 	"""Display all repos with uncommitted changes."""
-	jit = Jit(config.root)
-	Jit.displayDirtyRepos()
+	jit = Jit()
+	jit.displayDirtyRepos()
 
 @cli.command()
-@pass_config
-def master(config):
+def master():
 	"""Checkout master branch on all repos."""
-	jit = Jit(config.root)
+	jit = Jit()
 	jit.allToMaster()
 
 @cli.command()
-@pass_config
-def pull(config):
+def pull():
 	"""Pull from remote origin on all repos."""
-	jit = Jit(config.root)
+	jit = Jit()
 	jit.pullAll()
