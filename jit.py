@@ -2,10 +2,11 @@ import click
 import git
 import os
 
-class Jit():
+class Jit(object):
 
 	def __init__(self):
 		self.root = self.getRoot(os.getcwd())
+		self.root_files = []
 		if not self.root:
 			print "Could not find a root directory."
 			return
@@ -16,7 +17,7 @@ class Jit():
 	def getRoot(self, dir):
 		if self.isRepo(dir):
 			return os.path.dirname(dir)
-		elif len(dir) < 1:
+		elif len(dir) <= 1:
 			return False
 		else:
 			return self.getRoot(os.path.dirname(dir))
