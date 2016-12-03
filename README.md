@@ -7,7 +7,7 @@ repositories for the project. The following are the available commands (prepende
   
 **all**     Display all current branches.
 
-**co --branch**  Checks out this branch on all repos where it exists.
+**co \<branch name>**  Checks out this branch on all repos where it exists.
 
 **dirty**   Display all repos with uncommitted changes.
 
@@ -17,4 +17,4 @@ repositories for the project. The following are the available commands (prepende
 
 **pull**    Pull from remote origin on all repos. 
 
-**show --branch** Shows all repos where this branch exists.
+**show \<branch name>** Shows all repos where this branch exists.
