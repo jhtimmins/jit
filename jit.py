@@ -55,14 +55,30 @@ class Jit(object):
 	def getDirtyRepos(self):
 		 return [repo for repo in self.getRepos() if repo.is_dirty()]
 
-	def handleDirtyRepos(self):
-		dirty_repos = self.getDirtyRepos()
+	def handleDirtyRepos(self, dirty_repos = None):
+		if dirty_repos is None:
+			dirty_repos = self.getDirtyRepos()
+
 		if dirty_repos:
 			print "Please commit or stash your changes in the following repos."
 			for repo in dirty_repos:
 				print self.formatActiveBranchOutput(repo)
 			return True
 		return False;
+
+	def getRelevantRepos(self, branch_name):
+		relevant_repos = []
+		for repo in self.getRepos():
+			for branch in repo.branches:
+				if branch.name == branch_name:
+					relevant_repos.append(repo)
+
+		return relevant_repos
+
+	def checkoutRelevantRepos(self, branch_name):
+		for repo in self.getRelevantRepos(branch_name):
+			repo.git.checkout(branch_name)
+			print self.formatActiveBranchOutput(repo)			
 
 	def allToMaster(self):
 		if not self.handleDirtyRepos():
@@ -92,6 +108,10 @@ class Jit(object):
 
 	def displayDirtyRepos(self):
 		for repo in self.getDirtyRepos():
+			print self.formatActiveBranchOutput(repo)
+
+	def displayRelevantRepos(self, branch_name):
+		for repo in self.getRelevantRepos(branch_name):
 			print self.formatActiveBranchOutput(repo)
 
 @click.group()
@@ -128,3 +148,20 @@ def pull():
 	"""Pull from remote origin on all repos."""
 	jit = Jit()
 	jit.pullAll()
+
+@click.command()
+@click.argument('branch')
+def show(branch):
+	"""Show all repos that contain specified branch name."""
+	jit = Jit()
+	jit.displayRelevantRepos(branch)
+
+@click.command()
+@click.argument('branch')
+def co(branch):
+	"""Checkout specified branch in all repos where it exists."""
+	jit = Jit()
+	jit.checkoutRelevantRepos(branch)
+
+cli.add_command(show)
+cli.add_command(co)
