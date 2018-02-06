@@ -15,6 +15,9 @@ class Jit(object):
 		return
 
 	def getRoot(self, dir):
+		"""
+		Recursively look for directory containing git repos
+		"""
 		if self.isRepo(dir):
 			return os.path.dirname(dir)
 		elif len(dir) <= 1:
@@ -23,12 +26,21 @@ class Jit(object):
 			return self.getRoot(os.path.dirname(dir))
 
 	def getRepoRoot(self, repo_name):
+		"""
+		Get root directory for specified repo.
+		"""
 		return self.root + '/' + repo_name
 
 	def getRepoName(self, repo):
+		"""
+		Find name for currently accessed repo.
+		"""
 		return os.path.basename(repo.working_dir)
 
 	def getRepos(self):
+		"""
+		Get list of all accessible repos (based on current path).
+		"""
 		repos = []
 		for dir in self.root_files:
 			dir_path = self.getRepoRoot(dir)
@@ -38,10 +50,16 @@ class Jit(object):
 		return repos
 
 	def isRepo(self, dir_path):
+		"""
+		Determine whether current directory is a repository root.
+		"""
 		return os.path.isdir(dir_path + '/.git')
 
 
 	def getBranches(self, repo):
+		"""
+		Get list of branches for specified repository.
+		"""
 		branches = []
 		for branch in repo.branches:
 			if branch.name != 'master':
@@ -50,12 +68,21 @@ class Jit(object):
 		return branches
 
 	def formatActiveBranchOutput(self, repo):
+		"""
+		Format name of current repo branch.
+		"""
 		return self.getRepoName(repo).ljust(35) +  repo.active_branch.name
 
 	def getDirtyRepos(self):
+		"""
+		Get list of repos with uncommitted changes.
+		"""
 		 return [repo for repo in self.getRepos() if repo.is_dirty()]
 
-	def handleDirtyRepos(self, dirty_repos = None):
+	def findDirtyRepos(self, dirty_repos = None):
+		"""
+		Alert user of dirty repos.
+		"""
 		if dirty_repos is None:
 			dirty_repos = self.getDirtyRepos()
 
@@ -67,6 +94,9 @@ class Jit(object):
 		return False;
 
 	def getRelevantRepos(self, branch_name):
+		"""
+		Get repos with branch matching specified name.
+		"""
 		relevant_repos = []
 		for repo in self.getRepos():
 			for branch in repo.branches:
@@ -76,17 +106,26 @@ class Jit(object):
 		return relevant_repos
 
 	def checkoutRelevantRepos(self, branch_name):
+		"""
+		Checkout repos with branch matching specified name.
+		"""
 		for repo in self.getRelevantRepos(branch_name):
 			repo.git.checkout(branch_name)
-			print self.formatActiveBranchOutput(repo)			
+			print self.formatActiveBranchOutput(repo)
 
 	def allToMaster(self):
-		if not self.handleDirtyRepos():
+		"""
+		Checkout master on all repos.
+		"""
+		if not self.findDirtyRepos():
 			for repo in self.getRepos():
 				repo.heads.master.checkout()
 
 	def pullAll(self):
-		if not self.handleDirtyRepos():
+		"""
+		Pull from remote on all repos.
+		"""
+		if not self.findDirtyRepos():
 			for repo in self.getRepos():
 				try:
 					repo.remotes.origin.pull()
@@ -95,22 +134,34 @@ class Jit(object):
 					click.echo("Could not pull %s" % self.getRepoName(repo))
 
 	def displayUserRepos(self):
+		"""
+		Print all local branch names on all repos.
+		"""
 		for repo in self.getRepos():
 			if (len(repo.branches) > 1):
 				print self.getRepoName(repo)
 			for branch in self.getBranches(repo):
 				print branch.name.ljust(5)
-				
+
 	def displayCurrentBranches(self):
+		"""
+		Print current checked out branch on all repos.
+		"""
 		repos = self.getRepos()
 		for repo in repos:
 			print self.formatActiveBranchOutput(repo)
 
 	def displayDirtyRepos(self):
+		"""
+		Display all repos with uncommited changes on checked out branch.
+		"""
 		for repo in self.getDirtyRepos():
 			print self.formatActiveBranchOutput(repo)
 
 	def displayRelevantRepos(self, branch_name):
+		"""
+		Print name of all repos with specified branch name.
+		"""
 		for repo in self.getRelevantRepos(branch_name):
 			print self.formatActiveBranchOutput(repo)
 
@@ -129,7 +180,7 @@ def	all():
 def mine():
 	"""Display all branches for all repos."""
 	jit = Jit()
-	jit.displayUserRepos()   
+	jit.displayUserRepos()
 
 @cli.command()
 def dirty():
