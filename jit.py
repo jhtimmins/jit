@@ -77,7 +77,7 @@ class Jit(object):
 		"""
 		Get list of repos with uncommitted changes.
 		"""
-		 return [repo for repo in self.getRepos() if repo.is_dirty()]
+		return [repo for repo in self.getRepos() if repo.is_dirty()]
 
 	def findDirtyRepos(self, dirty_repos = None):
 		"""
